@@ -1,5 +1,12 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const generateToken = (id, email) => {
+    const jwtSecret = "iajsida3003";
+
+    return jwt.sign({id, email}, jwtSecret, {expiresIn: "1d"});
+}
 
 const register = async (req, res) => {
     try{
@@ -51,5 +58,48 @@ const register = async (req, res) => {
     
 };
 
+const login = async (req, res) => {
 
-module.exports = { register };
+    const { email, password } = req.body;
+
+    if(!email || !password){
+        return res.status(400).json({
+            message: "Email and Password are required!"
+        });
+    }
+
+    const user = await User.findOne({email: String(email).toLowerCase()});
+
+    if(!user){
+        return res.status(401).json({
+            message: "Invalid email or password"
+        });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if(!isPasswordValid){
+        return res.status(401).json({
+            message: "Invalid email or password"
+        });
+    }
+
+    const token = generateToken(String(user._id), user.email);
+
+    return res.json({
+        message: "Login successful.",
+        data: {
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            }
+        }
+    });
+}
+
+
+module.exports = { register, login };
