@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
-
-    const mongoUri = "mongodb+srv://adminUser:2qikHNntOv7ChzAP@cluster0.kqexqlk.mongodb.net/?appName=Cluster0";
-
-    await mongoose.connect(mongoUri);
-
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB connected successfully!");
-
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+    throw err;
+  }
 };
 
 module.exports = { connectDB };
